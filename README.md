@@ -128,23 +128,23 @@ markdown
 KPI cards for Idle Resource Cost, Annualized Idle Waste, Non-Prod Spend, and Estimated Reservation Savings, a pricing-mix donut chart, idle-cost-by-subscription bar chart, and an idle-vs-committed matrix by service and resource group — the page built to drive action items in a stakeholder review.
 
 markdown
-![Findings and Actions](assets/findings-and-actions.png)
+![Findings and Actions](https://github.com/sakshidave314/Azure_cost_optimisation_end-to-end_project/blob/f4ba60257eaede1c2a9c41687c93f5c942659175/Findings%20and%20action.png)
 
 ## 💡 Key Findings
 
 A note on these numbers: the dataset behind this project totals 20,750 cleaned billing records ($75,103.16 total spend) spanning Feb 1 – Jul 28, 2026 (178 days). Of those, 4,240 records (20.4%) have a missing Usage_Date — a gap the cleaning notebook doesn't currently handle — so every date-based query below (trends, anomalies, idle windows) correctly filters those out per the SQL's WHERE "Usage_Date" IS NOT NULL clause, and runs against the remaining 16,510 dated records ($60,105.53). Flagging this here rather than smoothing it over on purpose — it's exactly the kind of caveat a real stakeholder review would surface.
 
-💰 $23,604 in identified savings across the two clearest levers found — ~31% of total analyzed spend — made up of a $23,349 non-prod shutdown opportunity and $255/year in annualized idle-resource waste (breakdown below).
+1. 💰 $23,604 in identified savings across the two clearest levers found — ~31% of total analyzed spend — made up of a $23,349 non-prod shutdown opportunity and $255/year in annualized idle-resource waste (breakdown below).
 
-🧟 17 resources show usage that never exceeds 0.3 units on any day within the most recent 90-day window while still accruing cost — $62.93 over that window, or $255.23/year annualized if left unaddressed. Small in absolute terms, but a useful early-warning signal since none of them were caught by manual review.
+2. 🧟 17 resources show usage that never exceeds 0.3 units on any day within the most recent 90-day window while still accruing cost — $62.93 over that window, or $255.23/year annualized if left unaddressed. Small in absolute terms, but a useful early-warning signal since none of them were caught by manual review.
 
-📊 Pricing mix is already fairly balanced — 25.98% On-Demand, 27.34% Savings Plan, 23.08% Reservation, 23.60% Spot. Notably, a coefficient-of-variation analysis found zero of the 140 actively-used resources qualify as "Steady" commitment candidates (136 are Moderately Variable, 4 are Spiky) — so the honest recommendation is to hold on new 1-year commitments until usage patterns stabilize, rather than force a reservation purchase the data doesn't support.
+3. 📊 Pricing mix is already fairly balanced — 25.98% On-Demand, 27.34% Savings Plan, 23.08% Reservation, 23.60% Spot. Notably, a coefficient-of-variation analysis found zero of the 140 actively-used resources qualify as "Steady" commitment candidates (136 are Moderately Variable, 4 are Spiky) — so the honest recommendation is to hold on new 1-year commitments until usage patterns stabilize, rather than force a reservation purchase the data doesn't support.
 
-🏷️ 20.26% of records (21.33% of spend — $16,020.84) carry no team tag. That untagged spend isn't evenly spread: just 5 resource groups (rg-analytics, rg-webapp-prod, rg-webapp-dev, Unknown, rg-networking) account for ~83% of it — a genuinely quick governance fix.
+4. 🏷️ 20.26% of records (21.33% of spend — $16,020.84) carry no team tag. That untagged spend isn't evenly spread: just 5 resource groups (rg-analytics, rg-webapp-prod, rg-webapp-dev, Unknown, rg-networking) account for ~83% of it — a genuinely quick governance fix.
 
-🌙 67 non-prod resources (dev/staging/sandbox) run all 7 days a week, totaling $36,320.80 over the 178-day window. A nights + weekends shutdown schedule (108 of 168 weekly hours off) would recover $23,349.08 (64.3%), leaving $12,971.71 in unavoidable non-prod spend.
+5. 🌙 67 non-prod resources (dev/staging/sandbox) run all 7 days a week, totaling $36,320.80 over the 178-day window. A nights + weekends shutdown schedule (108 of 168 weekly hours off) would recover $23,349.08 (64.3%), leaving $12,971.71 in unavoidable non-prod spend.
 
-📈 11 spike days exceeded 2 standard deviations above the trailing 30-day average, together costing $7,700.74. Based on the trailing 8-week average and volatility, a ~$2,779/week alert threshold is a reasonable go-forward budget alert.
+6. 📈 11 spike days exceeded 2 standard deviations above the trailing 30-day average, together costing $7,700.74. Based on the trailing 8-week average and volatility, a ~$2,779/week alert threshold is a reasonable go-forward budget alert.
 
 ## 🧠 Insights & Recommendations
 
