@@ -1,8 +1,8 @@
-☁️ Azure Cost Optimisation — End-to-End FinOps Analysis
+# Azure Cost Optimisation — End-to-End FinOps Analysis
 
 Turning a messy 21K-row Azure billing export into an executive dashboard that identifies idle-resource waste, reservation opportunities, and untagged spend — using Python, SQL, and Power BI.
 
-Python SQL Power BI Status
+
 
 📌 TL;DR
 
@@ -12,9 +12,9 @@ Cleaned a raw, deliberately messy 21,024-row Azure billing export (inconsistent 
 Analyzed it with 19 advanced PostgreSQL queries — window functions, CTEs, JSON tag parsing, and statistical outlier detection — to answer the exact questions a CFO, FinOps lead, or engineering manager would ask.
 Visualized the findings in a 2-page Power BI dashboard built for executives: one page for the headline numbers, one page for the actionable findings.
 
-📎 Replace the placeholders in the Dashboard Screenshots and Key Findings sections with your own exported visuals and final numbers before publishing — see Reproducing This Project.
 
-🧩 The Business Problem
+
+## The Business Problem
 
 A mid-size company's Azure spend has been rising month over month, and leadership has no reliable way to answer basic financial questions about it:
 
@@ -24,67 +24,62 @@ Most workloads are still on On-Demand pricing, with reservations/savings plans u
 Tagging is incomplete, so spend can't be reliably attributed to a team or cost center for chargeback.
 There's no defined process for catching cost spikes before the invoice arrives.
 
-The goal of this project: build the analysis and reporting layer a FinOps analyst would deliver in their first 30 days — quantify the waste, rank it by impact, and hand leadership a dashboard they can act on.
+### The goal of this project: build the analysis and reporting layer a FinOps analyst would deliver in their first 30 days — quantify the waste, rank it by impact, and hand leadership a dashboard they can act on.
 
-❓ Stakeholder Questions This Project Answers
+## ❓ Stakeholder Questions This Project Answers
 
 These are the actual questions the SQL layer (azure_cost_optimisation.sql) was written to answer, grouped by the stakeholder who'd ask them:
 
-CFO / Finance
+### CFO / Finance
 
 What's our total spend by month, and what's the MoM / YoY trend?
 Which subscriptions account for the top 80% of spend (Pareto analysis)?
 Which days spiked more than 2 standard deviations above the trailing 30-day average, and what did those spikes cost us in total?
 What's a reasonable daily/weekly spend threshold to alert on going forward?
 
-Engineering / Resource Owners
+### Engineering / Resource Owners
 
 Which resource groups or teams are the biggest spenders?
 Which resources have near-zero usage but non-zero cost over the last 30 days?
 Which resources show that idle pattern every single day (not just once), and what's the projected annualized savings if we deleted or downsized them?
 Which resource groups have the highest concentration of idle resources?
 
-FinOps / Procurement
+### FinOps / Procurement
 
 What % of spend is OnDemand vs. Reservation vs. Savings Plan vs. Spot, and how has that mix trended?
 Which resources show steady, predictable daily usage (good Reserved Instance / Savings Plan candidates) vs. spiky, intermittent usage (bad candidates)?
 For steady-state On-Demand resources, what would switching to a 1-year commitment save at a typical 30–40% discount rate?
 
-Governance / FinOps Maturity
+### Governance / FinOps Maturity
 
 What % of total spend has no team tag, no cost center, or a malformed tag?
 Which resource groups have the worst tag compliance, and is the untagged spend concentrated in a few resource groups (easy fix) or spread everywhere (harder fix)?
 If we can attribute tagged spend, what does spend-by-team actually look like?
 Are non-prod (dev/staging/sandbox) resources running uniformly across all 7 days — i.e., is anyone turning them off? What would shutting them down nights and weekends save?
-🏗️ Project Architecture
-Raw messy CSV (Azure Cost Management export, 21,024 rows)
-        │
-        ▼
-┌───────────────────────────┐
-│  1. DATA CLEANING          │   Azure_cost_optimisation_end_to_end_analysis.ipynb
-│  Python + Pandas           │   → standardize column names & casing
-│                            │   → impute missing values (mode-based)
-│                            │   → remove duplicate records
-│                            │   → normalize region & service-name spellings
-└───────────────┬────────────┘
-                ▼
-┌───────────────────────────┐
-│  2. ANALYSIS LAYER         │   azure_cost_optimisation.sql
-│  PostgreSQL                │   → 19 queries: trend analysis, Pareto ranking,
-│                            │     idle-resource detection, tag-compliance audit,
-│                            │     anomaly detection (stddev-based), pricing-mix
-│                            │     analysis, commitment/RI candidacy scoring
-└───────────────┬────────────┘
-                ▼
-┌───────────────────────────┐
-│  3. REPORTING LAYER        │   Microsoft_azure_cost_optimisation_analysis.pbix
-│  Power BI                  │   → Executive Overview page (KPIs & trends)
-│                            │   → Findings & Actions page (waste & savings)
-└────────────────────────────┘
 
-Why this stack: Pandas handles the messy, row-level cleaning that's painful in SQL. PostgreSQL does the heavy lifting — window functions (LAG, cumulative SUM() OVER), CTEs, and JSON tag parsing — that would be slow or awkward in Power Query. Power BI turns the query outputs into something a non-technical stakeholder can actually use in a meeting.
+## 🏗️ Project Architecture
 
-🧹 Data Cleaning (Python / Pandas)
+Data flow: Raw messy CSV (Azure Cost Management export, 21,024 rows) → Data Cleaning → Analysis Layer → Reporting Layer
+
+1. Data Cleaning — Azure_cost_optimisation_end_to_end_analysis.ipynb (Python + Pandas)
+Standardize column names & casing
+Impute missing values (mode-based)
+Remove duplicate records
+Normalize region & service-name spellings
+
+
+
+2. Analysis Layer — azure_cost_optimisation.sql (PostgreSQL)
+19 queries covering trend analysis, Pareto ranking, idle-resource detection, tag-compliance audit, anomaly detection (stddev-based), pricing-mix analysis, and commitment/RI candidacy scoring
+   
+3. Reporting Layer — Microsoft_azure_cost_optimisation_analysis.pbix (Power BI)
+Executive Overview page (KPIs & trends)
+Findings & Actions page (waste & savings)
+
+
+### Why this stack: Pandas handles the messy, row-level cleaning that's painful in SQL. PostgreSQL does the heavy lifting — window functions (LAG, cumulative SUM() OVER), CTEs, and JSON tag parsing — that would be slow or awkward in Power Query. Power BI turns the query outputs into something a non-technical stakeholder can actually use in a meeting.
+
+## 🧹 Data Cleaning (Python / Pandas)
 
 The source file (azure_billing_export_messy.csv, 21,024 rows × 14 columns) was intentionally messy to mirror a real-world export. Key cleaning steps in the notebook:
 
@@ -97,7 +92,7 @@ Mixed date formats (2026-03-24 vs 04/11/2026) → standardized during load for r
 
 The cleaned dataset (azure_billing) is the single source of truth feeding both the SQL analysis and the Power BI model.
 
-🔍 SQL Analysis Highlights
+## 🔍 SQL Analysis Highlights
 
 19 production-style queries in azure_cost_optimisation.sql, organized around five themes:
 
@@ -106,27 +101,27 @@ Idle-resource waste — flags resources with usage ≤ 0.3 units but non-zero co
 Anomaly detection — a rolling 30-day mean/std-dev model flags days where spend exceeds the trailing average by more than 2 standard deviations, and quantifies the total cost of those spike days.
 Tag governance — parses the Tags JSON column to measure tag-compliance rate by resource group, quantify untagged spend, and produce a real spend-by-team breakdown wherever tags exist.
 Commitment strategy — a coefficient-of-variation model classifies each resource's daily usage as Steady, Moderately Variable, or Spiky to flag good vs. bad Reserved Instance / Savings Plan candidates, and estimates savings from a non-prod nights-and-weekends shutdown schedule.
-📊 Dashboard Screenshots
 
-Add your exported Power BI screenshots here — open Microsoft_azure_cost_optimisation_analysis.pbix in Power BI Desktop, go to each page, and use File → Export → Export to Image/PDF (or a simple screenshot). Save them into an /assets folder in this repo and update the paths below.
+## 📊 Dashboard Screenshots
 
-Page 1 — Executive Overview
 
-assets/executive-overview.png
+### Page 1 — Executive Overview
+
 
 KPI cards for Total Spend, MoM Spend Change %, OnDemand Spend %, and Total Identified Savings Opportunity, alongside a spend trend line, a spend-vs-OnDemand area chart, an environment/service spend funnel, and a subscription × service pivot matrix. Filterable by date, service, subscription, and pricing model.
 
 markdown
 ![Executive Overview](assets/executive-overview.png)
-Page 2 — Findings & Actions
 
-assets/findings-and-actions.png
+### Page 2 — Findings & Actions
+
 
 KPI cards for Idle Resource Cost, Annualized Idle Waste, Non-Prod Spend, and Estimated Reservation Savings, a pricing-mix donut chart, idle-cost-by-subscription bar chart, and an idle-vs-committed matrix by service and resource group — the page built to drive action items in a stakeholder review.
 
 markdown
 ![Findings and Actions](assets/findings-and-actions.png)
-💡 Key Findings
+
+## 💡 Key Findings
 
 A note on these numbers: the dataset behind this project totals 20,750 cleaned billing records ($75,103.16 total spend) spanning Feb 1 – Jul 28, 2026 (178 days). Of those, 4,240 records (20.4%) have a missing Usage_Date — a gap the cleaning notebook doesn't currently handle — so every date-based query below (trends, anomalies, idle windows) correctly filters those out per the SQL's WHERE "Usage_Date" IS NOT NULL clause, and runs against the remaining 16,510 dated records ($60,105.53). Flagging this here rather than smoothing it over on purpose — it's exactly the kind of caveat a real stakeholder review would surface.
 
@@ -136,7 +131,8 @@ A note on these numbers: the dataset behind this project totals 20,750 cleaned b
 🏷️ 20.26% of records (21.33% of spend — $16,020.84) carry no team tag. That untagged spend isn't evenly spread: just 5 resource groups (rg-analytics, rg-webapp-prod, rg-webapp-dev, Unknown, rg-networking) account for ~83% of it — a genuinely quick governance fix.
 🌙 67 non-prod resources (dev/staging/sandbox) run all 7 days a week, totaling $36,320.80 over the 178-day window. A nights + weekends shutdown schedule (108 of 168 weekly hours off) would recover $23,349.08 (64.3%), leaving $12,971.71 in unavoidable non-prod spend.
 📈 11 spike days exceeded 2 standard deviations above the trailing 30-day average, together costing $7,700.74. Based on the trailing 8-week average and volatility, a ~$2,779/week alert threshold is a reasonable go-forward budget alert.
-🧠 Insights & Recommendations
+
+## 🧠 Insights & Recommendations
 
 Turning the query outputs into decisions is the point of the exercise — here's how each finding translates into an action, ranked roughly by how quickly it can be actioned. Replace the [ ] placeholders with your real numbers once you've run the queries.
 
@@ -180,30 +176,28 @@ Priority: 🟡 Ongoing — prevention, not remediation
 
 Overall recommendation: address rows 1–2 first — they're the highest-savings, lowest-effort items and don't require a purchasing or architecture decision. Row 3 needs a short implementation project but is still low-risk and is the single largest lever found ($23,349). Row 4 is a "no action, revisit later" call rather than a missed opportunity — the data doesn't currently support new commitments, and pretending otherwise would waste budget. Rows 5–6 aren't one-time fixes; they're the operating model this dashboard is meant to support going forward — a monthly review against these two views (Executive Overview for the trend, Findings & Actions for the backlog) turns this from a one-off audit into an ongoing cost-governance process.
 
-🛠️ Tech Stack
+## 🛠️ Tech Stack
 Data cleaning & wrangling — Python, Pandas, Jupyter Notebook
 Analysis & aggregation — PostgreSQL (window functions, CTEs, JSON parsing)
 Reporting & visualization — Power BI Desktop
 Source data — Simulated Azure Cost Management billing export (CSV)
-🔁 Reproducing This Project
-Clean the data — open Azure_cost_optimisation_end_to_end_analysis.ipynb in Jupyter, point it at your raw billing CSV, and run all cells. Export the cleaned DataFrame to a table named azure_billing.
-Load into PostgreSQL — create a database, load the cleaned data into an azure_billing table matching the column names used in the notebook (Usage_Date, Subscription_Name, Resource_Group, Resource_Id, Service_Name, Usage_Quantity, Cost, Pricing_Model, Tags, …).
-Run the analysis — execute the 19 queries in azure_cost_optimisation.sql to generate the summary tables that power the dashboard.
-Open the dashboard — open Microsoft_azure_cost_optimisation_analysis.pbix in Power BI Desktop, point the data source at your PostgreSQL database, and hit Refresh.
-📂 Repository Structure
+
+## 📂 Repository Structure
 ├── Azure_cost_optimisation_end_to_end_analysis.ipynb   # Data cleaning (Python/Pandas)
 ├── azure_cost_optimisation.sql                          # 19 analysis queries (PostgreSQL)
 ├── Microsoft_azure_cost_optimisation_analysis.pbix       # Power BI dashboard (2 pages)
 ├── assets/                                               # Dashboard screenshots (add your own)
 └── README.md
-🚀 What This Project Demonstrates
+
+## 🚀 What This Project Demonstrates
 End-to-end FinOps workflow: raw export → cleaning → analysis → executive-ready reporting.
 Advanced SQL: window functions (LAG, SUM() OVER, STDDEV_SAMP() OVER), CTEs, JSON parsing, statistical anomaly detection, cumulative-percentage (Pareto) analysis.
 Data cleaning judgment: sensible imputation strategy per column type, deduplication, categorical standardization.
 Business framing: every query maps directly to a question a real stakeholder (CFO, engineering manager, FinOps lead) would ask — not just a technical exercise.
 Dashboard design: a two-page structure that separates "what's the headline number" (Executive Overview) from "what do we do about it" (Findings & Actions).
-📬 Contact
 
-[Your Name] — LinkedIn · Portfolio · Email
+## 📬 Contact
+
+[Sakshi Dave] — · sakshidave115@gmail.com
 
 If you're a recruiter or hiring manager and want to talk through the design decisions behind this project, I'd love to chat.
