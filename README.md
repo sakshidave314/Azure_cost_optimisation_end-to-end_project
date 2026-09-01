@@ -4,7 +4,7 @@ Turning a messy 21K-row Azure billing export into an executive dashboard that id
 
 
 
-📌 TL;DR
+## 📌 TL;DR
 
 Cloud spend grows quietly until Finance asks "why is the Azure bill up 30%?" and nobody has a clean answer. This project simulates that exact FinOps scenario end-to-end:
 
@@ -81,35 +81,35 @@ Findings & Actions page (waste & savings)
 
 ## 🧹 Data Cleaning (Python / Pandas)
 
-The source file (azure_billing_export_messy.csv, 21,024 rows × 14 columns) was intentionally messy to mirror a real-world export. Key cleaning steps in the notebook:
+1. The source file (azure_billing_export_messy.csv, 21,024 rows × 14 columns) was intentionally messy to mirror a real-world export. Key cleaning steps in the notebook:
 
-Inconsistent column naming (UsageDate, SubscriptionId, …) → renamed to a consistent Snake_Case schema.
+2. Inconsistent column naming (UsageDate, SubscriptionId, …) → renamed to a consistent Snake_Case schema.
 
-Missing values across Service_Name, Subscription_Name, Resource_Group, Tags, etc. → categorical fields imputed with mode; ID fields imputed with 'Unknown'.
+3. Missing values across Service_Name, Subscription_Name, Resource_Group, Tags, etc. → categorical fields imputed with mode; ID fields imputed with 'Unknown'.
 
-274 exact duplicate rows → identified and dropped.
+4. 274 exact duplicate rows → identified and dropped.
 
-Inconsistent region naming (westeurope, eastus2, southeastasia, …) → standardized to display names (West Europe, East US, …).
+5. Inconsistent region naming (westeurope, eastus2, southeastasia, …) → standardized to display names (West Europe, East US, …).
 
-Inconsistent service-name casing/spelling (cosmos db, SQL database , …) → trimmed, title-cased, and mapped to a canonical service list (Cosmos DB, SQL Database, Azure Kubernetes Service, …).
+6. Inconsistent service-name casing/spelling (cosmos db, SQL database , …) → trimmed, title-cased, and mapped to a canonical service list (Cosmos DB, SQL Database, Azure Kubernetes Service, …).
 
-Mixed date formats (2026-03-24 vs 04/11/2026) → standardized during load for reliable date-based analysis downstream.
+7. Mixed date formats (2026-03-24 vs 04/11/2026) → standardized during load for reliable date-based analysis downstream.
 
-The cleaned dataset (azure_billing) is the single source of truth feeding both the SQL analysis and the Power BI model.
+8. The cleaned dataset (azure_billing) is the single source of truth feeding both the SQL analysis and the Power BI model.
 
 ## 🔍 SQL Analysis Highlights
 
 19 production-style queries in azure_cost_optimisation.sql, organized around five themes:
 
-Spend trends — monthly spend with MoM/YoY growth via LAG() window functions; Pareto (80/20) ranking of subscriptions and resource groups using cumulative-sum windows.
+1. Spend trends — monthly spend with MoM/YoY growth via LAG() window functions; Pareto (80/20) ranking of subscriptions and resource groups using cumulative-sum windows.
 
-Idle-resource waste — flags resources with usage ≤ 0.3 units but non-zero cost over a rolling 90-day window, then annualizes the projected savings (90-day cost × 365/90) if those resources were deleted or rightsized.
+2. Idle-resource waste — flags resources with usage ≤ 0.3 units but non-zero cost over a rolling 90-day window, then annualizes the projected savings (90-day cost × 365/90) if those resources were deleted or rightsized.
 
-Anomaly detection — a rolling 30-day mean/std-dev model flags days where spend exceeds the trailing average by more than 2 standard deviations, and quantifies the total cost of those spike days.
+3. Anomaly detection — a rolling 30-day mean/std-dev model flags days where spend exceeds the trailing average by more than 2 standard deviations, and quantifies the total cost of those spike days.
 
-Tag governance — parses the Tags JSON column to measure tag-compliance rate by resource group, quantify untagged spend, and produce a real spend-by-team breakdown wherever tags exist.
+4. Tag governance — parses the Tags JSON column to measure tag-compliance rate by resource group, quantify untagged spend, and produce a real spend-by-team breakdown wherever tags exist.
 
-Commitment strategy — a coefficient-of-variation model classifies each resource's daily usage as Steady, Moderately Variable, or Spiky to flag good vs. bad Reserved Instance / Savings Plan candidates, and estimates savings from a non-prod nights-and-weekends shutdown schedule.
+5. Commitment strategy — a coefficient-of-variation model classifies each resource's daily usage as Steady, Moderately Variable, or Spiky to flag good vs. bad Reserved Instance / Savings Plan candidates, and estimates savings from a non-prod nights-and-weekends shutdown schedule.
 
 ## 📊 Dashboard Screenshots
 
@@ -120,7 +120,7 @@ Commitment strategy — a coefficient-of-variation model classifies each resourc
 KPI cards for Total Spend, MoM Spend Change %, OnDemand Spend %, and Total Identified Savings Opportunity, alongside a spend trend line, a spend-vs-OnDemand area chart, an environment/service spend funnel, and a subscription × service pivot matrix. Filterable by date, service, subscription, and pricing model.
 
 markdown
-![Executive Overview](assets/executive-overview.png)
+![Executive Overview](https://github.com/sakshidave314/Azure_cost_optimisation_end-to-end_project/blob/8c06f3390315c95f7344f60b07f03c50747a5813/Executive%20Overview.png)
 
 ### Page 2 — Findings & Actions
 
