@@ -84,10 +84,15 @@ Findings & Actions page (waste & savings)
 The source file (azure_billing_export_messy.csv, 21,024 rows × 14 columns) was intentionally messy to mirror a real-world export. Key cleaning steps in the notebook:
 
 Inconsistent column naming (UsageDate, SubscriptionId, …) → renamed to a consistent Snake_Case schema.
+
 Missing values across Service_Name, Subscription_Name, Resource_Group, Tags, etc. → categorical fields imputed with mode; ID fields imputed with 'Unknown'.
+
 274 exact duplicate rows → identified and dropped.
+
 Inconsistent region naming (westeurope, eastus2, southeastasia, …) → standardized to display names (West Europe, East US, …).
+
 Inconsistent service-name casing/spelling (cosmos db, SQL database , …) → trimmed, title-cased, and mapped to a canonical service list (Cosmos DB, SQL Database, Azure Kubernetes Service, …).
+
 Mixed date formats (2026-03-24 vs 04/11/2026) → standardized during load for reliable date-based analysis downstream.
 
 The cleaned dataset (azure_billing) is the single source of truth feeding both the SQL analysis and the Power BI model.
@@ -97,9 +102,13 @@ The cleaned dataset (azure_billing) is the single source of truth feeding both t
 19 production-style queries in azure_cost_optimisation.sql, organized around five themes:
 
 Spend trends — monthly spend with MoM/YoY growth via LAG() window functions; Pareto (80/20) ranking of subscriptions and resource groups using cumulative-sum windows.
+
 Idle-resource waste — flags resources with usage ≤ 0.3 units but non-zero cost over a rolling 90-day window, then annualizes the projected savings (90-day cost × 365/90) if those resources were deleted or rightsized.
+
 Anomaly detection — a rolling 30-day mean/std-dev model flags days where spend exceeds the trailing average by more than 2 standard deviations, and quantifies the total cost of those spike days.
+
 Tag governance — parses the Tags JSON column to measure tag-compliance rate by resource group, quantify untagged spend, and produce a real spend-by-team breakdown wherever tags exist.
+
 Commitment strategy — a coefficient-of-variation model classifies each resource's daily usage as Steady, Moderately Variable, or Spiky to flag good vs. bad Reserved Instance / Savings Plan candidates, and estimates savings from a non-prod nights-and-weekends shutdown schedule.
 
 ## 📊 Dashboard Screenshots
@@ -126,10 +135,15 @@ markdown
 A note on these numbers: the dataset behind this project totals 20,750 cleaned billing records ($75,103.16 total spend) spanning Feb 1 – Jul 28, 2026 (178 days). Of those, 4,240 records (20.4%) have a missing Usage_Date — a gap the cleaning notebook doesn't currently handle — so every date-based query below (trends, anomalies, idle windows) correctly filters those out per the SQL's WHERE "Usage_Date" IS NOT NULL clause, and runs against the remaining 16,510 dated records ($60,105.53). Flagging this here rather than smoothing it over on purpose — it's exactly the kind of caveat a real stakeholder review would surface.
 
 💰 $23,604 in identified savings across the two clearest levers found — ~31% of total analyzed spend — made up of a $23,349 non-prod shutdown opportunity and $255/year in annualized idle-resource waste (breakdown below).
+
 🧟 17 resources show usage that never exceeds 0.3 units on any day within the most recent 90-day window while still accruing cost — $62.93 over that window, or $255.23/year annualized if left unaddressed. Small in absolute terms, but a useful early-warning signal since none of them were caught by manual review.
+
 📊 Pricing mix is already fairly balanced — 25.98% On-Demand, 27.34% Savings Plan, 23.08% Reservation, 23.60% Spot. Notably, a coefficient-of-variation analysis found zero of the 140 actively-used resources qualify as "Steady" commitment candidates (136 are Moderately Variable, 4 are Spiky) — so the honest recommendation is to hold on new 1-year commitments until usage patterns stabilize, rather than force a reservation purchase the data doesn't support.
+
 🏷️ 20.26% of records (21.33% of spend — $16,020.84) carry no team tag. That untagged spend isn't evenly spread: just 5 resource groups (rg-analytics, rg-webapp-prod, rg-webapp-dev, Unknown, rg-networking) account for ~83% of it — a genuinely quick governance fix.
+
 🌙 67 non-prod resources (dev/staging/sandbox) run all 7 days a week, totaling $36,320.80 over the 178-day window. A nights + weekends shutdown schedule (108 of 168 weekly hours off) would recover $23,349.08 (64.3%), leaving $12,971.71 in unavoidable non-prod spend.
+
 📈 11 spike days exceeded 2 standard deviations above the trailing 30-day average, together costing $7,700.74. Based on the trailing 8-week average and volatility, a ~$2,779/week alert threshold is a reasonable go-forward budget alert.
 
 ## 🧠 Insights & Recommendations
@@ -174,7 +188,7 @@ Recommendation: Set the calculated ~$2,779/week alert threshold (trailing 8-week
 Owner: FinOps / Engineering
 Priority: 🟡 Ongoing — prevention, not remediation
 
-Overall recommendation: address rows 1–2 first — they're the highest-savings, lowest-effort items and don't require a purchasing or architecture decision. Row 3 needs a short implementation project but is still low-risk and is the single largest lever found ($23,349). Row 4 is a "no action, revisit later" call rather than a missed opportunity — the data doesn't currently support new commitments, and pretending otherwise would waste budget. Rows 5–6 aren't one-time fixes; they're the operating model this dashboard is meant to support going forward — a monthly review against these two views (Executive Overview for the trend, Findings & Actions for the backlog) turns this from a one-off audit into an ongoing cost-governance process.
+### Overall recommendation: address rows 1–2 first — they're the highest-savings, lowest-effort items and don't require a purchasing or architecture decision. Row 3 needs a short implementation project but is still low-risk and is the single largest lever found ($23,349). Row 4 is a "no action, revisit later" call rather than a missed opportunity — the data doesn't currently support new commitments, and pretending otherwise would waste budget. Rows 5–6 aren't one-time fixes; they're the operating model this dashboard is meant to support going forward — a monthly review against these two views (Executive Overview for the trend, Findings & Actions for the backlog) turns this from a one-off audit into an ongoing cost-governance process.
 
 ## 🛠️ Tech Stack
 Data cleaning & wrangling — Python, Pandas, Jupyter Notebook
@@ -191,9 +205,12 @@ Source data — Simulated Azure Cost Management billing export (CSV)
 
 ## 🚀 What This Project Demonstrates
 End-to-end FinOps workflow: raw export → cleaning → analysis → executive-ready reporting.
+
 Advanced SQL: window functions (LAG, SUM() OVER, STDDEV_SAMP() OVER), CTEs, JSON parsing, statistical anomaly detection, cumulative-percentage (Pareto) analysis.
+
 Data cleaning judgment: sensible imputation strategy per column type, deduplication, categorical standardization.
 Business framing: every query maps directly to a question a real stakeholder (CFO, engineering manager, FinOps lead) would ask — not just a technical exercise.
+
 Dashboard design: a two-page structure that separates "what's the headline number" (Executive Overview) from "what do we do about it" (Findings & Actions).
 
 ## 📬 Contact
