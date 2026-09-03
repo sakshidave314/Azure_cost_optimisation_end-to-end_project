@@ -141,7 +141,7 @@ assets/executive-overview.png
 KPI cards for Total Spend, MoM Spend Change %, OnDemand Spend %, and Total Identified Savings Opportunity, alongside a spend trend line, a spend-vs-OnDemand area chart, an environment/service spend funnel, and a subscription × service pivot matrix. Filterable by date, service, subscription, and pricing model.
 
 markdown
-![Executive Overview](assets/executive-overview.png)
+![Executive Overview](https://github.com/sakshidave314/Azure_cost_optimisation_end-to-end_project/blob/557ec0b85cc1f83c422729e5ff30c38c38ca02c8/Executive%20Overview.png)
 Page 2 — Findings & Actions
 
 assets/findings-and-actions.png
