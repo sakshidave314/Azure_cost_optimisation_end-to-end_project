@@ -149,7 +149,7 @@ assets/findings-and-actions.png
 KPI cards for Idle Resource Cost, Annualized Idle Waste, Non-Prod Spend, and Estimated Reservation Savings, a pricing-mix donut chart, idle-cost-by-subscription bar chart, and an idle-vs-committed matrix by service and resource group — the page built to drive action items in a stakeholder review.
 
 markdown
-![Findings and Actions](assets/findings-and-actions.png)
+![Findings and Actions](https://github.com/sakshidave314/Azure_cost_optimisation_end-to-end_project/blob/ae580fef626795cccbaf8df410332613a0a2b356/Findings%20and%20action.png)
 
 ## 💡 Key Findings
 
